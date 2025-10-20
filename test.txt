@@ -1,0 +1,71 @@
+ai_project_management/
+│
+├── app/
+│   ├── api/
+│   │   ├── v1/
+│   │   │   ├── endpoints/
+│   │   │   │   ├── users.py
+│   │   │   │   ├── projects.py
+│   │   │   │   └── tasks.py
+│   │   │   └── __init__.py
+│   │   ├── deps/
+│   │   │   ├── auth.py
+│   │   │   ├── db.py
+│   │   │   └── __init__.py
+│   │   └── __init__.py
+│   │
+│   ├── core/
+│   │   ├── config.py
+│   │   ├── security.py
+│   │   ├── logging.py
+│   │   └── __init__.py
+│   │
+│   ├── db/
+│   │   ├── base.py
+│   │   ├── session.py
+│   │   ├── migrations/
+│   │   └── __init__.py
+│   │
+│   ├── models/
+│   │   ├── user.py
+│   │   ├── project.py
+│   │   ├── task.py
+│   │   └── __init__.py
+│   │
+│   ├── schemas/
+│   │   ├── user.py
+│   │   ├── project.py
+│   │   ├── task.py
+│   │   └── __init__.py
+│   │
+│   ├── repositories/
+│   │   ├── user_repository.py
+│   │   ├── project_repository.py
+│   │   ├── task_repository.py
+│   │   └── __init__.py
+│   │
+│   ├── services/
+│   │   ├── user_service.py
+│   │   ├── project_service.py
+│   │   ├── task_service.py
+│   │   └── __init__.py
+│   │
+│   ├── utils/
+│   │   ├── exceptions.py
+│   │   ├── helpers.py
+│   │   └── __init__.py
+│   │
+│   ├── main.py
+│   └── __init__.py
+│
+├── tests/
+│   ├── test_users.py
+│   ├── test_projects.py
+│   └── __init__.py
+│
+├── .env
+├── docker-compose.yml
+├── Dockerfile
+├── alembic.ini
+├── requirements.txt
+└── README.md
