@@ -10,7 +10,7 @@ convention = {
     "pk": "pk_%(table_name)s"
 }
 
-metadata = Metadata(naming_convention = convention)
+metadata = MetaData(naming_convention = convention)
 
 class Base(DeclarativeBase):
     metadata = metadata
