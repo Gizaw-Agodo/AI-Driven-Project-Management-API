@@ -1,13 +1,12 @@
-from datetime import datetime, timezone
-from sqlalchemy import String, Boolean, DateTime
+from sqlalchemy import String, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from app.db import Base
+from app.db import Base, TimestampMixin
 from typing import List, TYPE_CHECKING
 
 if TYPE_CHECKING: 
     from app.models import Project, Task
 
-class User(Base): 
+class User(Base , TimestampMixin): 
     __tablename__ = 'users'
     id : Mapped[int] = mapped_column(primary_key=True,index = True )
     email : Mapped[str] = mapped_column(String(255), unique= True, nullable= False, index = True)
@@ -16,9 +15,7 @@ class User(Base):
     hashed_password : Mapped[str] = mapped_column(String(255), nullable=False)
     is_active : Mapped[bool] = mapped_column(Boolean, default=True, nullable= False)
     is_superuser : Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    created_at : Mapped[datetime] = mapped_column(DateTime, default= datetime.now(timezone.utc), nullable=False)
-    updated_at : Mapped[datetime] = mapped_column(DateTime, default= datetime.now(timezone.utc), nullable= False)
-
+  
     owned_projects : Mapped[List['Project']] = relationship(
         "Project", back_populates='owner', foreign_keys='Project.owner_id', cascade="all, delete-orphan"
     )
