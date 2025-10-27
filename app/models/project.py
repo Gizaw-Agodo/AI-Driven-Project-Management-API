@@ -10,14 +10,14 @@ from enum import Enum
 if TYPE_CHECKING : 
     from app.models import User, Task
 
-class ProjectStatus(Enum, str): 
+class ProjectStatus(str, Enum): 
     PLANNING = "planning"
     ACTIVE = "active"
     ON_HOLD = "on_hold"
     COMPLETED  = "completed"
     CANCELLED  = 'cancelled'
 
-class ProjectPriority(Enum, str): 
+class ProjectPriority(str, Enum): 
     LOW = "low"
     MEDIUM =  'medium'
     HIGH  = 'high'
@@ -30,8 +30,8 @@ class Project(Base, TimestampMixin):
     description: Mapped[str] = mapped_column(Text, nullable=True)
     status : Mapped[ProjectStatus] = mapped_column(SqlEnum(ProjectStatus), default= ProjectStatus.PLANNING, nullable=False, index= True)
     priority: Mapped[ProjectPriority] = mapped_column(SqlEnum(ProjectPriority), default= ProjectPriority.MEDIUM, nullable= False, index=True)
-    start_date: Mapped(Optional(datetime)) = mapped_column(DateTime, nullable=True)
-    end_date: Mapped(Optional(datetime)) = mapped_column(DateTime, nullable=True)
+    start_date:  Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    end_date:  Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     owner_id : Mapped[int] = mapped_column(ForeignKey('users.id'), nullable=False, index=True)
 
     owner : Mapped['User'] = relationship("User", back_populates='owned_projects', foreign_keys=[owner_id])

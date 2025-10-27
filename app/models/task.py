@@ -9,7 +9,7 @@ if TYPE_CHECKING :
     from app.models import Project, User
 
 
-class TaskStatus(Enum, str): 
+class TaskStatus(str, Enum): 
     TODO  = 'todo'
     IN_PROGRESS = 'in_progress'
     IN_REVIEW = 'in_review'
@@ -17,7 +17,7 @@ class TaskStatus(Enum, str):
     BLOCKED  = 'blocked'
     CANCELLED  = 'cancelled'
 
-class TaskPriority(Enum, str): 
+class TaskPriority(str, Enum): 
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
@@ -25,7 +25,7 @@ class TaskPriority(Enum, str):
 
 class Task(Base , TimestampMixin): 
     __tablename__ = 'tasks'
-    id : Mapped(int) = mapped_column(primary_key=True, nullable= False)
+    id : Mapped[int] = mapped_column(primary_key=True, nullable= False)
     title: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     status: Mapped[TaskStatus] = mapped_column(SQLEnum(TaskStatus), default=TaskStatus.TODO, nullable=False, index=True)
