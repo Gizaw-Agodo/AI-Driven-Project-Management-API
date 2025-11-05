@@ -1,11 +1,10 @@
 from typing import Optional, List, Dict, Any
-from sqlalchemy import select, func, and_, or_
+from sqlalchemy import select, func, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload, joinedload
 from datetime import datetime
 
 from app.models.project import Project, ProjectStatus, ProjectPriority
-from app.models.user import User
 from app.repositories.base_repository import BaseRepository
 
 

@@ -7,7 +7,7 @@ from app.models.task import Task, TaskPriority, TaskStatus
 from app.repositories.base_repository import BaseRepository
 from app.models import Project, Task
 
-class TaskRePository(BaseRepository[Task]):
+class TaskRepository(BaseRepository[Task]):
     def __init__(self, db):
         super().__init__(Task, db)
     
@@ -164,4 +164,20 @@ class TaskRePository(BaseRepository[Task]):
         project_id: Optional[int] = None,
         limit: int = 10
     ) -> List[Task]:
-        pass
+        conditions = [
+            Task.priority.in_([TaskPriority.HIGH, TaskPriority.CRITICAL]),
+            Task.status != TaskStatus.DONE
+        ]
+        
+        if project_id:
+            conditions.append(Task.project_id == project_id)
+        
+        query = select(Task).where(
+            and_(*conditions)
+        ).order_by(
+            Task.priority.desc(),
+            Task.due_date.nullsfirst()
+        ).limit(limit)
+        
+        result = await self.db.execute(query)
+        return list[Task](result.scalars().all())

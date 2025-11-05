@@ -11,6 +11,10 @@ class Settings(BaseSettings):
     POSTGRESS_PORT : str = '5432'
     POSTGRESS_DB : str =  "project_management"
 
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 4
+    SECRET_KEY : str = ""
+    ALGORITHM : str = 'sha256'
+
     @property
     def DATABASE_URL(self):
         return f'postgresql+asyncpg://{self.POSTGRESS_USER}:{self.POSTGRESS_PASSWORD}@{self.POSTGRESS_HOST}:{self.POSTGRESS_PORT}/{self.POSTGRESS_DB}'
