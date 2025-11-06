@@ -1,8 +1,10 @@
 from datetime import datetime, timedelta
+import string
 from typing import Any, Optional
 from passlib.context import CryptContext
 from app.core.config import settings
 from jose import JWTError, jwt
+import secrets
 
 pwd_context = CryptContext( schemes=["bcrypt"], deprecated="auto", bcrypt__rounds=12 )
 
@@ -36,3 +38,40 @@ def create_access_token(
 
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
+
+def create_refresh_token(data : dict[str, Any])-> str : 
+    to_encode = data.copy()
+    expire = datetime.utcnow()+ timedelta(days = 7)
+    to_encode.update({
+        "exp": expire, 
+        "iat": datetime.utcnow(),
+        "type" : "refresh"
+    })
+
+    encoded_jwt = jwt.encode(
+        to_encode,
+        settings.SECRET_KEY,
+        algorithms=[settings.ALGORITHM]
+    )
+
+    return encoded_jwt
+
+def decode_token(token : str) -> Optional[dict[str, Any]]: 
+    try:
+        payload = jwt.decode(
+            token,
+            settings.SECRET_KEY,
+            algorithms=[settings.ALGORITHM]
+            )
+        return payload
+        
+    except JWTError:
+        return None
+
+def generate_random_token(length: int = 32) -> str : 
+    alphabet = string.ascii_letters + string.digits
+    return "".join(secrets.choice(alphabet) for _ in range(length))
+
+def generate_verification_code(length: int = 6) -> str:
+    return "".join(secrets.choice(string.digits) for _ in range(length))
+
