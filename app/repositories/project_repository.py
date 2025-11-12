@@ -162,3 +162,10 @@ class ProjectRepository(BaseRepository[Project]):
                 if stats.total_tasks > 0 else 0
             )
         }
+    async def update_status(
+        self,
+        project_id: int,
+        new_status: ProjectStatus
+    ) -> Optional[Project]:
+
+        return await self.update(project_id, {'status': new_status})
