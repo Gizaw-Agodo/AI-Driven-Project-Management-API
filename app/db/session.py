@@ -19,6 +19,3 @@ localSession = async_sessionmaker(
     autoflush=False,
 )
 
-async def get_db() -> AsyncSession: 
-    async with localSession as session: 
-        yield session
