@@ -1,6 +1,3 @@
-from turtle import update
-from typing import Optional, List, Dict, Any
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 
 from app.repositories.user_repository import UserRepository
@@ -8,10 +5,10 @@ from app.schemas.user import UserCreate, UserUpdate, UserPasswordUpdate
 from app.models.user import User
 from app.core.security import hash_password, verify_password
 from app.utils.exceptions import ( ForbiddenException, NotFoundException, AlreadyExistsException, UnauthorizedException, ValidationException, BusinessLogicException)
+
 class UserService:
-    def __init(self, db: AsyncSession):
-        self.db = db 
-        self.user_repo = UserRepository(db)
+    def __init__(self, user_repo: UserRepository):
+        self.user_repo = user_repo
    
     async def create_user(self, user_data: UserCreate) -> User:
 
@@ -44,7 +41,6 @@ class UserService:
             return user
 
         except IntegrityError as e : 
-            await self.db.rollback()
             raise AlreadyExistsException( message = "user already exists")
         
     async def get_user_by_id(self, user_id : int, load_relations : bool = False):

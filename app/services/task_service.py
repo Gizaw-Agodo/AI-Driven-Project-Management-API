@@ -1,5 +1,4 @@
 from typing import Optional, List, Dict, Any
-from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime, timedelta
 
 from app.repositories.task_repository import TaskRepository
@@ -13,11 +12,10 @@ from app.utils.exceptions import (NotFoundException,ValidationException,Forbidde
 
 class TaskService:
 
-    def __init__(self, db: AsyncSession):
-        self.db = db
-        self.task_repo = TaskRepository(db)
-        self.project_repo = ProjectRepository(db)
-        self.user_repo = UserRepository(db)
+    def __init__(self, task_repo:TaskRepository, project_repo: ProjectRepository, user_repo: UserRepository):
+        self.task_repo = task_repo
+        self.project_repo = project_repo
+        self.user_repo = user_repo
 
     async def create_task(
         self,
@@ -624,8 +622,6 @@ class TaskService:
             }
             
         except Exception as e:
-            # Transaction will auto-rollback
-            await self.db.rollback()
             raise BusinessLogicException(
                 message="Bulk update failed",
                 details={"error": str(e)}

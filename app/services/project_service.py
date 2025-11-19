@@ -1,6 +1,4 @@
-from typing import Optional, List, Dict, Any
-from sqlalchemy.ext.asyncio import AsyncSession
-from datetime import datetime
+from typing import Optional, List
 
 from app.repositories.project_repository import ProjectRepository
 from app.repositories.user_repository import UserRepository
@@ -9,10 +7,9 @@ from app.models.project import Project, ProjectStatus
 from app.utils.exceptions import ( NotFoundException,ValidationException,ForbiddenException,BusinessLogicException)
 
 class ProjectService:
-    def __init__(self,db:AsyncSession):
-        self.db = db
-        self.project_repo = ProjectRepository(db)
-        self.user_repo = UserRepository(db)
+    def __init__(self,user_repo:UserRepository, project_repo : ProjectRepository):
+        self.project_repo = project_repo
+        self.user_repo = user_repo
     
     async def create_project(self, project_data : ProjectCreate, owner_id:int):
         #verify owner 
