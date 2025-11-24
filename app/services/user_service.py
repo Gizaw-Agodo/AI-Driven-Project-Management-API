@@ -71,6 +71,10 @@ class UserService:
                 message = f"User with username {username} not found"
             )
         return user
+
+    async def get_all(self): 
+        users = await self.user_repo.get_all()
+        return users
     
     async def authenticate_user(self, email : str, passowrd: str) -> User: 
         user = await self.user_repo.get_by_email(email)
