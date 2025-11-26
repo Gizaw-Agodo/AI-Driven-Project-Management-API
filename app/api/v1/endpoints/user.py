@@ -14,7 +14,6 @@ from app.services.user_service import UserService
 from app.api.deps import (
     get_db,
     get_current_user,
-    get_current_superuser,
     get_user_service
 )
 

@@ -1,9 +1,10 @@
 from typing import Optional, List
 
+from app.models import User
 from app.repositories.project_repository import ProjectRepository
 from app.repositories.user_repository import UserRepository
 from app.schemas.project import ProjectCreate, ProjectUpdate, ProjectStatusUpdate
-from app.models.project import Project, ProjectStatus
+from app.models.project import Project, ProjectPriority, ProjectStatus
 from app.utils.exceptions import ( NotFoundException,ValidationException,ForbiddenException,BusinessLogicException)
 
 class ProjectService:
@@ -43,6 +44,38 @@ class ProjectService:
             raise NotFoundException( message=f"Project with ID {project_id} not found")
         
         return project
+    
+    async def get_by_filters(
+        self,
+        status: ProjectStatus,
+        priority: ProjectPriority,
+        owner_id: int,
+        current_user: User,
+        skip: int  = 0,
+        limit: int = 100
+
+    ) -> Project:
+        filters = {}
+        
+        if not current_user.is_superuser:
+            owner_id = current_user.id  
+        
+        if owner_id:
+            filters['owner_id'] = owner_id
+        if status:
+            filters['status'] = ProjectStatus[status.value.upper()]
+        if priority:
+            filters['priority'] = ProjectPriority[priority.value.upper()]
+        
+    
+        projects = await self.project_repo.get_by_filters(
+            filters=filters,
+            skip=skip,
+            limit=limit,
+            relationships=["owner"]
+        )
+        
+        return projects
     
     async def update_project(
         self,
