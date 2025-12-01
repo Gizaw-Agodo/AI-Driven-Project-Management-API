@@ -11,6 +11,7 @@ from app.core.security import (
     verify_token_type
 )
 from app.core.config import settings
+from app.services import user_service
 from app.services.user_service import UserService
 from app.api.deps import get_db, get_user_service, get_current_user
 from app.models.user import User
@@ -115,44 +116,9 @@ async def login_enhanced(
 )
 async def refresh_token(
     refresh_request: TokenRefreshRequest,
-    db: AsyncSession = Depends(get_db)
+    user_service: UserService = Depends(get_user_service)
 ) -> Token:
-    """
-    Refresh access token.
-    
-    🎓 TOKEN REFRESH PATTERN:
-    
-    Why refresh tokens?
-    - Access tokens are short-lived (30 min)
-    - Don't want user to login every 30 min
-    - Refresh token is long-lived (7 days)
-    - Use refresh token to get new access token
-    
-    Flow:
-    1. Access token expires
-    2. Client detects 401 error
-    3. Client calls /refresh with refresh_token
-    4. Server validates refresh token
-    5. Issues new access token (and optionally new refresh token)
-    6. Client retries original request with new token
-    
-    Security:
-    - Refresh tokens should be rotated (issue new one each time)
-    - Should be stored securely (httpOnly cookie)
-    - Can be revoked (store in Redis/DB)
-    
-    Request:
-    {
-        "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-    }
-    
-    Response:
-    {
-        "access_token": "NEW_TOKEN",
-        "token_type": "bearer",
-        "refresh_token": "NEW_REFRESH_TOKEN"  // Token rotation
-    }
-    """
+   
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Invalid refresh token",
@@ -175,42 +141,35 @@ async def refresh_token(
         
         # Extract user info
         user_id_str = payload.get("sub")
-        username = payload.get("username")
-        email = payload.get("email")
         
         if not user_id_str:
             raise credentials_exception
         
         user_id = int(user_id_str)
+
+        user = await user_service.get_user_by_id(user_id)
+    
+        if not user or not user.is_active:
+            raise credentials_exception
+
+        tokens = create_token_pair(
+            user_id=user.id,
+            username=user.username,
+            email=user.email
+        )
+        
+        return Token(
+            access_token=tokens["access_token"],
+            token_type="bearer",
+            expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+            refresh_token=tokens["refresh_token"]  # New refresh token
+        )
         
     except Exception:
         raise credentials_exception
     
-    # Verify user still exists and is active
-    from app.repositories.user_repository import UserRepository
-    user_repo = UserRepository(db)
-    user = await user_repo.get_by_id(user_id)
     
-    if not user or not user.is_active:
-        raise credentials_exception
-    
-    # 🎓 TOKEN ROTATION: Create new token pair
-    # This invalidates the old refresh token (if you track them)
-    tokens = create_token_pair(
-        user_id=user.id,
-        username=user.username,
-        email=user.email
-    )
-    
-    return Token(
-        access_token=tokens["access_token"],
-        token_type="bearer",
-        expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-        refresh_token=tokens["refresh_token"]  # New refresh token
-    )
 
-
-# ==================== LOGOUT ====================
 
 @router.post(
     "/logout",
