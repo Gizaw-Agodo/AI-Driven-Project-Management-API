@@ -4,16 +4,8 @@ from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
-from app.utils.exceptions import (
-    AppException,
-    NotFoundException,
-    AlreadyExistsException,
-    ValidationException,
-    UnauthorizedException,
-    ForbiddenException,
-    BusinessLogicException
-)
-from app.core.errors import create_error_response, ErrorDetail
+from app.utils.exceptions import ( AppException)
+from app.core.errors import create_error_response
 
 # Configure logger
 logger = logging.getLogger(__name__)
