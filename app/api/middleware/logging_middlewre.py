@@ -8,6 +8,9 @@ from starlette.middleware.base import BaseHTTPMiddleware
 logger = logging.getLogger(__name__)
 
 class LoggingMiddleware(BaseHTTPMiddleware): 
+    def __init__(self, app) -> None:
+        super().__init__(app)
+        
     SENSETIVE_HEADERS = [
         'authorization',
         'x-api-key',

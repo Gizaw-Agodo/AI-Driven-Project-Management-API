@@ -3,7 +3,8 @@ import uuid
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 class RequestIDMiddleware(BaseHTTPMiddleware):
-    
+    def __init__(self, app) -> None:
+        super().__init__(app)
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         
         request_id = request.headers.get("X-Request-ID")
