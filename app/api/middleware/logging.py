@@ -1,33 +1,47 @@
-import logging
 import time
+import logging
 from typing import Callable
 from fastapi import Request, Response
-from starlette.middleware import P
 from starlette.middleware.base import BaseHTTPMiddleware
+import json
+
 
 logger = logging.getLogger(__name__)
 
-class LoggingMiddleware(BaseHTTPMiddleware): 
-    def __init__(self, app) -> None:
-        super().__init__(app)
-        
-    SENSETIVE_HEADERS = [
-        'authorization',
-        'x-api-key',
-        'cookie',
-        'x-csrf-token'
-    ]
-    EXCLUDE_PATHS = [
-        '/health',
-        '/metrics'
-    ]
-    async def dispatch(self, request: Request, call_next: Callable) -> Response:
-        if request.url.path in self.EXCLUDE_PATHS:
-           return await call_next(request)
-        
-        start_time  = time.time()
-        request_info = self._extract_request_info(request)
 
+class LoggingMiddleware(BaseHTTPMiddleware):
+    
+    # 🎓 SENSITIVE HEADERS: Don't log these
+    SENSITIVE_HEADERS = {
+        "authorization",
+        "x-api-key",
+        "cookie",
+        "x-csrf-token",
+    }
+    
+    EXCLUDE_PATHS = {
+        "/health",
+        "/metrics",
+    }
+    
+    async def dispatch(
+        self,
+        request: Request,
+        call_next: Callable
+    ) -> Response:
+        """Process and log each request/response."""
+        
+        # Skip logging for certain paths
+        if request.url.path in self.EXCLUDE_PATHS:
+            return await call_next(request)
+        
+        # 🎓 START TIMING
+        start_time = time.time()
+        
+        # Extract request information
+        request_info = await self._extract_request_info(request)
+        
+        # Log incoming request
         logger.info(
             f"Incoming request: {request.method} {request.url.path}",
             extra={
@@ -39,9 +53,12 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 "user_agent": request.headers.get("user-agent", "unknown"),
             }
         )
-        try: 
+        
+        # Process request
+        try:
             response = await call_next(request)
         except Exception as e:
+            # 🎓 LOG EXCEPTIONS
             process_time = time.time() - start_time
             
             logger.error(
@@ -57,8 +74,11 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 exc_info=True
             )
             raise
-
+        
+        # 🎓 END TIMING
         process_time = time.time() - start_time
+        
+        # Add timing header
         response.headers["X-Process-Time"] = str(round(process_time, 3))
         
         # Log response
@@ -76,8 +96,39 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 "response_size": response.headers.get("content-length", "unknown"),
             }
         )
-
-
+        
+        # 🎓 PERFORMANCE MONITORING: Alert on slow requests
+        if process_time > 1.0:  # Slower than 1 second
+            logger.warning(
+                f"Slow request detected: {request.method} {request.url.path}",
+                extra={
+                    "request_id": getattr(request.state, "request_id", "unknown"),
+                    "process_time": round(process_time, 3),
+                    "threshold": 1.0,
+                }
+            )
+        
+        return response
+    
+    async def _extract_request_info(self, request: Request) -> dict:
+        """
+        Extract request information safely.
+        
+        🎓 SECURITY: Filter sensitive data.
+        """
+        # Filter headers
+        headers = {
+            k: v for k, v in request.headers.items()
+            if k.lower() not in self.SENSITIVE_HEADERS
+        }
+        
+        return {
+            "method": request.method,
+            "url": str(request.url),
+            "headers": headers,
+            "query_params": dict(request.query_params),
+        }
+    
     def _get_log_level(self, status_code: int) -> int:
         """
         Determine log level based on status code.
@@ -94,18 +145,3 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             return logging.WARNING
         else:
             return logging.ERROR
-
-        
-
-    
-    async def _extract_request_info(self, request: Request) -> dict: 
-        headers = {
-            k:v for k, v in request.headers.items() if k.lower() not in self.SENSETIVE_HEADERS
-        }
-
-        return {
-            "method" : request.method,
-            "url" : str(request.url),
-            "headers" : headers,
-            "query_params": dict[str, str](request.query_params)
-        }
