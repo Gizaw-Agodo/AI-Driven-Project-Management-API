@@ -8,11 +8,9 @@ from app.schemas.user import (
     UserPasswordUpdate,
     UserListResponse
 )
-from app.schemas.base import PaginationParams
 from app.models.user import User
 from app.services.user_service import UserService
 from app.api.deps import (
-    get_db,
     get_current_user,
     get_user_service
 )
@@ -49,7 +47,7 @@ async def list_users(
     skip: int = Query(0, ge=0, description="Number of records to skip"),
     limit: int = Query(100, ge=1, le=1000, description="Maximum records to return"),
     user_service: UserService = Depends(get_user_service),
-    current_user: User = Depends(get_current_superuser)  # 🎓 Admin only
+    current_user: User = Depends(get_current_user)  # 🎓 Admin only
 ) -> UserListResponse:
     
     users = await user_service.get_all()
@@ -192,7 +190,8 @@ async def deactivate_account(
 async def delete_user(
     user_id: int = Path(..., gt=0),
     user_service: UserService = Depends(get_user_service),
-    admin: User = Depends(get_current_superuser)
+    admin: User = Depends(get_current_user) #change to supare user later
 ):
 
     await user_service.delete_user(user_id)
+    

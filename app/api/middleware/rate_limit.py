@@ -90,7 +90,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         if client_ip in self.requests:
             self.requests[client_ip] = [t for t in self.requests[client_ip] if t > current_time - 3600]
     
-    def _get_request_count(self, client_ip: str, current_time : float) -> Tuple[int, int]:
+    def _get_request_count(self, client_ip: str, current_time : float) -> tuple[int, int]:
         if client_ip not in self.requests: 
             return (0,0)
         

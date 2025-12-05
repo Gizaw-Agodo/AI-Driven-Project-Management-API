@@ -5,6 +5,7 @@ from enum import Enum
 
 from app.schemas.base import BaseSchema, TimestampSchema, IDSchema
 from app.schemas.user import UserPublic
+from app.schemas.project import ProjectResponse
 
 
 # ============== ENUMS ==============
@@ -122,7 +123,6 @@ class TaskResponse(TaskBase, IDSchema, TimestampSchema):
 
 
 class TaskWithProject(TaskResponse):
-    from app.schemas.project import ProjectResponse
     project: ProjectResponse
 
 

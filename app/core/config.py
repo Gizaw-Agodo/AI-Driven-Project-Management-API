@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 4
     SECRET_KEY : str = ""
     ALGORITHM : str = 'sha256'
+    TRUSTED_HOSTS : list = ['api.gizaw.com','api.gmail.com'] 
 
     @property
     def DATABASE_URL(self):
