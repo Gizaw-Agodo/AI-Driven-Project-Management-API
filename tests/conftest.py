@@ -98,3 +98,90 @@ async def db_session_with_commit() -> AsyncGenerator[AsyncSession, None]:
         # Clean up after test
         await session.rollback()
 
+
+# ==================== CLIENT FIXTURES ====================
+@pytest.fixture
+async def client(db_session:AsyncSession) -> AsyncGenerator[AsyncSession, None]:
+    
+    async def override_get_db():
+        yield db_session
+    
+    app.dependency_overrides[get_db] = override_get_db
+
+    #create async client 
+    async with AsyncClient(
+        transport=ASGITransport(app = app),
+        base_url="http://test"
+    ) as ac:
+        yield ac
+    
+    #remove ovveride
+    app.dependency_overrides.clear()
+
+@pytest.fixture
+async def test_user(db_session: AsyncSession) -> User:
+    user = User(
+        email = "testuser@example.com",
+        username = "testuser",
+        full_name = "Test User",
+        hasshed_password = hash_password('TestPass123'),
+        is_active = True,
+        is_superuser = False
+    )
+    db_session.add(user)
+    await db_session.flush()
+    await db_session.refresh(user)
+    return user 
+
+@pytest.fixture
+async def test_superuser(db_session: AsyncSession) -> User:
+    """Create a superuser for admin tests."""
+    user = User(
+        email="admin@example.com",
+        username="admin",
+        full_name="Admin User",
+        hashed_password=hash_password("AdminPass123"),
+        is_active=True,
+        is_superuser=True,
+    )
+    db_session.add(user)
+    await db_session.flush()
+    await db_session.refresh(user)
+    return user
+
+@pytest.fixture
+async def inactive_user(db_session: AsyncSession) -> User:
+    """Create an inactive user for testing."""
+    user = User(
+        email="inactive@example.com",
+        username="inactive",
+        full_name="Inactive User",
+        hashed_password=hash_password("TestPass123"),
+        is_active=False,
+        is_superuser=False,
+    )
+    db_session.add(user)
+    await db_session.flush()
+    await db_session.refresh(user)
+    return user
+
+
+@pytest.fixture
+def user_token(test_user: User) -> str:
+    """
+    Get access token for test user.
+    """
+    return create_access_token(
+        data={
+            "sub": str(test_user.id),
+            "username": test_user.username,
+            "email": test_user.email,
+        }
+    )
+
+@pytest.fixture
+def auth_headers(user_token: str) -> dict:
+    """
+    Auth headers for requests.
+    """
+    return {"Authorization": f"Bearer {user_token}"}
